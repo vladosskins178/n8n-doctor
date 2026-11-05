@@ -1,0 +1,48 @@
+{
+ "name": "ldap",
+ "nodes": [
+  {
+   "id": "t",
+   "name": "Trigger",
+   "type": "n8n-nodes-base.manualTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {}
+  },
+  {
+   "id": "0",
+   "position": [
+    200,
+    0
+   ],
+   "name": "LDAP",
+   "type": "n8n-nodes-base.ldap",
+   "typeVersion": 1,
+   "parameters": {
+    "operation": "search",
+    "baseDN": "dc=x",
+    "searchFor": "custom",
+    "customFilter": "(uid={{ $('Ghost').item.json.uid }})"
+   }
+  }
+ ],
+ "connections": {
+  "Trigger": {
+   "main": [
+    [
+     {
+      "node": "LDAP",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

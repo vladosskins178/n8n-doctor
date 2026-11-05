@@ -1,0 +1,30 @@
+{
+  "name": "n8n-doctor",
+  "version": "0.1.0",
+  "description": "Lint, explain and fix n8n workflow JSON, and triage failed executions on a live instance (read-only).",
+  "author": {
+    "name": "Vladislav Y",
+    "url": "https://github.com/vladosskins178"
+  },
+  "homepage": "https://github.com/vladosskins178/n8n-doctor",
+  "repository": "https://github.com/vladosskins178/n8n-doctor",
+  "license": "MIT",
+  "keywords": [
+    "n8n",
+    "workflow",
+    "automation",
+    "lint",
+    "mcp"
+  ],
+  "mcpServers": {
+    "n8n-doctor": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/vladosskins178/n8n-doctor@v0.1.0",
+        "n8n-doctor",
+        "mcp"
+      ]
+    }
+  }
+}

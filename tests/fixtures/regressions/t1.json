@@ -1,0 +1,231 @@
+{
+  "name": "flow hunter22",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "id0",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.org/x",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Api-Key",
+              "value": "Enter-The-Dragon-99"
+            }
+          ]
+        }
+      },
+      "id": "id1",
+      "name": "H1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.org/x",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Basic hunter22"
+            }
+          ]
+        }
+      },
+      "id": "id2",
+      "name": "H2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "options": {},
+        "password": "Pa55"
+      },
+      "id": "id3",
+      "name": "Mail",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const password = \"s3cr3tPassw0rd!\";\nconst apiKey = 'addMe2024!';\nconst cfg = { secret: `ADMINPASS` };\nreturn [];"
+      },
+      "id": "id4",
+      "name": "C1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.org/x",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "correct horse battery staple"
+            }
+          ]
+        }
+      },
+      "id": "id5",
+      "name": "H3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.org/x",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"password\": \"q1w2\", \"user\":\"bob\"}"
+      },
+      "id": "id6",
+      "name": "H4",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "pw is s3cr3tPassw0rd! and Pa55 correct horse battery staple"
+      },
+      "id": "id7",
+      "name": "Note Enter-The-Dragon-99",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "H1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "H1": {
+      "main": [
+        [
+          {
+            "node": "H2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "H2": {
+      "main": [
+        [
+          {
+            "node": "Mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mail": {
+      "main": [
+        [
+          {
+            "node": "C1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C1": {
+      "main": [
+        [
+          {
+            "node": "H3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "H3": {
+      "main": [
+        [
+          {
+            "node": "H4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "H4": {
+      "main": [
+        [
+          {
+            "node": "Note Enter-The-Dragon-99",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "pinData": {
+    "H1": [
+      {
+        "json": {
+          "echo": "Enter-The-Dragon-99"
+        }
+      }
+    ]
+  }
+}

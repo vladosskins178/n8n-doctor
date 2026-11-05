@@ -1,0 +1,56 @@
+{
+  "name": "W",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "id0",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.org/x",
+        "options": {}
+      },
+      "id": "id1",
+      "name": "H",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        200,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "H",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "pinData": {
+    "H": [
+      {
+        "json": {
+          "access_token": "Enter-The-Dragon-99",
+          "refresh_token": "1//0gAbCdEfGhIjKlMnOp",
+          "password": "Blue-Sky-Rain-77",
+          "email": "alice@corp.com"
+        }
+      }
+    ]
+  }
+}

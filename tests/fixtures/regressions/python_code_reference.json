@@ -1,0 +1,46 @@
+{
+ "name": "py",
+ "nodes": [
+  {
+   "id": "t",
+   "name": "Trigger",
+   "type": "n8n-nodes-base.manualTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {}
+  },
+  {
+   "id": "0",
+   "position": [
+    200,
+    0
+   ],
+   "name": "Py",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "parameters": {
+    "language": "python",
+    "pythonCode": "x = _('Ghost').first().json\nreturn [{'a': 1}]"
+   }
+  }
+ ],
+ "connections": {
+  "Trigger": {
+   "main": [
+    [
+     {
+      "node": "Py",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

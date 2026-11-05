@@ -1,0 +1,54 @@
+{
+ "name": "braces",
+ "nodes": [
+  {
+   "id": "t",
+   "name": "Trigger",
+   "type": "n8n-nodes-base.manualTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {}
+  },
+  {
+   "id": "0",
+   "position": [
+    200,
+    0
+   ],
+   "name": "Set",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "parameters": {
+    "assignments": {
+     "assignments": [
+      {
+       "id": "1",
+       "name": "a",
+       "type": "string",
+       "value": "{{ JSON.stringify({a: $json.x}) }}"
+      }
+     ]
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Trigger": {
+   "main": [
+    [
+     {
+      "node": "Set",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling>=1.27"]  # PEP 639: SPDX license string and license-files as a list of globs
+build-backend = "hatchling.build"
+
+[project]
+name = "n8n-doctor"
+version = "0.1.0"
+description = "Lint n8n workflows before they fail in production: hardcoded secrets, open webhooks, broken references, loops that never finish. CLI, GitHub Action, SARIF, agent skill and MCP server."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [{ name = "Vladislav Y" }]
+keywords = ["n8n", "workflow", "automation", "linter", "static-analysis", "sarif", "mcp", "agent-skills", "claude-code"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: System Administrators",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Software Development :: Testing",
+  "Typing :: Typed",
+]
+dependencies = ['tomli>=1.1; python_version < "3.11"']
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.10"]
+
+[project.scripts]
+n8n-doctor = "n8n_doctor.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/vladosskins178/n8n-doctor"
+Issues = "https://github.com/vladosskins178/n8n-doctor/issues"
+Changelog = "https://github.com/vladosskins178/n8n-doctor/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/n8n_doctor"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"skills/n8n-doctor/SKILL.md" = "n8n_doctor/skill/SKILL.md"
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "skills", "tests", "examples", "docs", ".claude-plugin", "action.yml", "README.md", "LICENSE", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "AGENTS.md"]
+
+[tool.ruff]
+line-length = 160
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "PTH", "C4"]
+ignore = ["RUF001", "RUF002", "RUF003", "SIM108", "PTH123"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unused_ignores = true
+files = ["src/n8n_doctor", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["tomli"]
+ignore_missing_imports = true

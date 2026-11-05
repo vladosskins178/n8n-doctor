@@ -1,0 +1,49 @@
+{
+ "name": "pg_qr",
+ "nodes": [
+  {
+   "id": "t",
+   "name": "Trigger",
+   "type": "n8n-nodes-base.manualTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {}
+  },
+  {
+   "id": "0",
+   "position": [
+    200,
+    0
+   ],
+   "name": "PG",
+   "type": "n8n-nodes-base.postgres",
+   "typeVersion": 2.5,
+   "parameters": {
+    "operation": "executeQuery",
+    "query": "select $1",
+    "options": {
+     "queryReplacement": "{{ $('Ghost').item.json.id }}"
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Trigger": {
+   "main": [
+    [
+     {
+      "node": "PG",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

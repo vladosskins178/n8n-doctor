@@ -1,0 +1,173 @@
+{
+  "name": "Sync data with name",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "test",
+        "httpMethod": "POST",
+        "options": {}
+      },
+      "id": "id0",
+      "name": "Webhook test",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.org/x",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Api-Key",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "id": "id1",
+      "name": "Get data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.org/x",
+        "options": {},
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "name"
+            }
+          ]
+        }
+      },
+      "id": "id2",
+      "name": "Send data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const token = \"data\";\nconst m = { password: \"password\", apiKey: \"json\" };\nreturn items.map(i => ({json: {data: i.json.data, name: i.json.name}}));"
+      },
+      "id": "id3",
+      "name": "Map fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://hooks.example.com/webhook-test/data",
+        "options": {}
+      },
+      "id": "id4",
+      "name": "Call https://hooks.example.com/data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "name",
+              "value": "={{ $('Get data').item.json.name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "id5",
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook test": {
+      "main": [
+        [
+          {
+            "node": "Get data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get data": {
+      "main": [
+        [
+          {
+            "node": "Send data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send data": {
+      "main": [
+        [
+          {
+            "node": "Map fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map fields": {
+      "main": [
+        [
+          {
+            "node": "Call https://hooks.example.com/data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call https://hooks.example.com/data": {
+      "main": [
+        [
+          {
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

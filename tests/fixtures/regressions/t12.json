@@ -1,0 +1,43 @@
+{
+  "name": "W",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "id0",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = await this.helpers.httpRequest({ url: 'https://api.acme.io/v1', headers: { 'X-Api-Key': 'a8f5f167f44f4964e6c998dee827110c', 'Authorization': 'Token 9b2c1d7e5f3a4b6c8d0e1f2a3b4c5d6e' } });\nreturn [{json: r}];"
+      },
+      "id": "id1",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

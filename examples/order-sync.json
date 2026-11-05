@@ -1,0 +1,283 @@
+{
+  "name": "Order sync",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "a1",
+      "name": "Every 30 seconds",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://shop.example.com/api/orders?status=paid",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "a2",
+      "name": "Get paid orders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "7",
+          "name": "Shop API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 20,
+        "options": {}
+      },
+      "id": "a3",
+      "name": "Loop over orders",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const all = $input.all();\nconst order = $input.item.json;\nreturn { json: { id: order.id, total: order.total, batch: all.length } };"
+      },
+      "id": "a4",
+      "name": "Shape order",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "minutes"
+      },
+      "id": "a5",
+      "name": "Respect rate limit",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        400
+      ],
+      "webhookId": "b7c1d2e3-0000-4000-8000-000000000005"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.total }}",
+                    "rightValue": 1000,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "big"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.total }}",
+                    "rightValue": 1000,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lte"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "normal"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a6",
+      "name": "By size",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1100,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "for (const item of items) {\n  item.json.flagged = true;\n}\nreturn items;"
+      },
+      "id": "a7",
+      "name": "Flag big order",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        300
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://erp.example.com/api/orders",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "a8",
+      "name": "Push to ERP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        300
+      ],
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "9",
+          "name": "ERP API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every 30 seconds": {
+      "main": [
+        [
+          {
+            "node": "Get paid orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get paid orders": {
+      "main": [
+        [
+          {
+            "node": "Loop over orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop over orders": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Shape order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape order": {
+      "main": [
+        [
+          {
+            "node": "Respect rate limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respect rate limit": {
+      "main": [
+        [
+          {
+            "node": "By size",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "By size": {
+      "main": [
+        [
+          {
+            "node": "Flag big order",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Flag big order": {
+      "main": [
+        [
+          {
+            "node": "Push to ERP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push to ERP": {
+      "main": [
+        [],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "12",
+    "saveDataErrorExecution": "none"
+  }
+}

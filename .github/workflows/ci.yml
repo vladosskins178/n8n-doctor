@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Lint and tests (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy --strict src tests
+      - run: pytest
+
+  action:
+    name: GitHub Action on the examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # The examples are broken on purpose, so the final lint step must fail.
+      - name: Run the action
+        id: lint
+        continue-on-error: true
+        uses: ./
+        with:
+          path: examples
+          args: --fail-on warning
+          sarif-file: n8n-doctor.sarif
+      - name: The action failed on the broken examples and wrote SARIF
+        run: |
+          test "${{ steps.lint.outcome }}" = "failure"
+          test "${{ steps.lint.outputs.sarif-file }}" = "n8n-doctor.sarif"
+          python -c 'import json; s = json.load(open("n8n-doctor.sarif")); assert s["runs"][0]["results"]'
+      - name: A clean workflow passes
+        uses: ./
+        with:
+          path: examples/healthy.json
+          annotations: "false"

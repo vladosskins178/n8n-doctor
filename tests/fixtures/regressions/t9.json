@@ -1,0 +1,119 @@
+{
+  "name": "W",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "id0",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.x.io/graphql?access_token=Purple-Monkey-Dishwasher",
+        "options": {}
+      },
+      "id": "id1",
+      "name": "GQL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://admin:Blue-Sky-Rain-77@db.x.io/api",
+        "options": {}
+      },
+      "id": "id2",
+      "name": "DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.x.io/v1?api_key=mysecretkeyvalue",
+        "options": {}
+      },
+      "id": "id3",
+      "name": "K",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.x.io/v1?password=hunter2hunter",
+        "options": {}
+      },
+      "id": "id4",
+      "name": "P",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "GQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GQL": {
+      "main": [
+        [
+          {
+            "node": "DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DB": {
+      "main": [
+        [
+          {
+            "node": "K",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "K": {
+      "main": [
+        [
+          {
+            "node": "P",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

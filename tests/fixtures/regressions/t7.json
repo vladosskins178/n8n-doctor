@@ -1,0 +1,65 @@
+{
+  "name": "W",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "id0",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "id1",
+      "name": "Get Order",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 2,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const res = await this.helpers.httpRequest({\n  url: 'https://api.acme.io/v1/orders',\n  headers: { 'X-Api-Key': 'Enter-The-Dragon-99', \"Authorization\": \"Basic aHVudGVyOmh1bnRlcjI=\" },\n  auth: { username: 'svc', password: 'Blue-Sky-Rain-77' },\n});\nconst body = JSON.stringify({ \"password\": \"Tr0ub4dor&3\" });\nconst form = { api_key: \"k9-Lm-22-Qx\" };\nparams.set('token', 'Moon-River-2024');\nconst db = \"Server=db;User Id=sa;Password=Winter-Is-Coming-1;\";\nconst pass = 'Purple-Monkey-Dishwasher';\nconst order = $('Get Ordr').first().json;\nreturn [{json: order}];\n"
+      },
+      "id": "id2",
+      "name": "Call API",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Get Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Order": {
+      "main": [
+        [
+          {
+            "node": "Call API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

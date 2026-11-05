@@ -1,0 +1,47 @@
+{
+  "name": "::group::x\n::endgroup::",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "a",
+        "options": {}
+      },
+      "id": "id0",
+      "name": "Webhook\n::warning::pwned\r%0A::error file=x::evil",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Ghost\n::notice::z').item }}",
+        "options": {}
+      },
+      "id": "id1",
+      "name": "H::stop-commands::tok\u2028x\u0085y",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        200,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook\n::warning::pwned\r%0A::error file=x::evil": {
+      "main": [
+        [
+          {
+            "node": "H::stop-commands::tok\u2028x\u0085y",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

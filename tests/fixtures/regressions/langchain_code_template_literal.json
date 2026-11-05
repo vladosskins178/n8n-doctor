@@ -1,0 +1,4 @@
+{"name":"t","nodes":[{"id":"1","name":"Manual","type":"n8n-nodes-base.manualTrigger","typeVersion":1,"position":[0,0],"parameters":{}},
+{"id":"2","name":"LC","type":"@n8n/n8n-nodes-langchain.code","typeVersion":1,"position":[0,0],"parameters":{"code":{"execute":{"code":"const tpl = 'Hello {{ $json.name }}';\nreturn [];"}}}},
+{"id":"3","name":"Sort","type":"n8n-nodes-base.sort","typeVersion":1,"position":[0,0],"parameters":{"type":"code","code":"// {{ x }}\nreturn a.x - b.x;"}}],
+"connections":{"Manual":{"main":[[{"node":"LC","type":"main","index":0}]]},"LC":{"main":[[{"node":"Sort","type":"main","index":0}]]}}}

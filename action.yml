@@ -1,0 +1,165 @@
+name: n8n-doctor
+description: Lint n8n workflow JSON in your repository. Annotates pull requests, and can upload SARIF to GitHub code scanning.
+author: Vladislav Y
+branding:
+  icon: activity
+  color: orange
+
+inputs:
+  path:
+    description: >-
+      Workflow files or folders to check, separated by spaces. Quote paths with spaces. Glob patterns such as
+      "workflows/**/*.json" are expanded (a path that exists as written is taken as it is); they match hidden files
+      and folders, never follow symlinks or look inside .git or node_modules, and may match at most 10,000 paths. A
+      path matched twice is checked once. Paths go here, not in args.
+    default: "."
+  args:
+    description: >-
+      Extra options for `n8n-doctor lint`, for example "--fail-on warning --ignore N8D303". Options only: a path in
+      args is refused (put it in path), and so are --format and --output, which the action sets itself.
+    default: ""
+  annotations:
+    description: >-
+      Show findings as annotations on the pull request diff: true, yes, on or 1 (any case, spaces ignored); anything
+      else turns them off.
+    default: "true"
+  sarif-file:
+    description: Also write a SARIF report to this path (empty to skip).
+    default: ""
+  inline-suppressions:
+    description: >-
+      Honour n8n-doctor-disable notes inside the workflows. Set to false, no, off or 0 (any case, spaces ignored) to
+      report everything, for example on pull requests from forks.
+    default: "true"
+  config:
+    description: >-
+      Config file to use. Empty (the default) finds the nearest .n8n-doctor.toml; "none" ignores config files.
+      A pull request can change the config files in its own checkout, so on pull requests from forks use "none"
+      or a file checked out from the base branch.
+    default: ""
+  upload-sarif:
+    description: >-
+      Upload the SARIF report to code scanning (needs sarif-file and the security-events: write permission). true,
+      yes, on or 1 (any case, spaces ignored) turns it on.
+    default: "false"
+
+outputs:
+  sarif-file:
+    description: Path of the SARIF report, or empty if none was written.
+    value: ${{ steps.sarif.outputs.path }}
+
+runs:
+  using: composite
+  steps:
+    # Installed into its own virtual environment, so the job's Python and packages are left alone.
+    - name: Install n8n-doctor
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        INLINE: ${{ inputs.inline-suppressions }}
+        ANNOTATIONS: ${{ inputs.annotations }}
+        UPLOAD: ${{ inputs.upload-sarif }}
+        N8ND_ARGS: ${{ inputs.args }}
+        N8ND_PATHS: ${{ inputs.path }}
+        N8ND_SARIF: ${{ inputs.sarif-file }}
+      run: |
+        set -euo pipefail
+        py="$(command -v python3 || command -v python)"
+        "$py" -c 'import sys; sys.exit(sys.version_info < (3, 10))' || { echo "n8n-doctor needs Python 3.10+ on the runner (add actions/setup-python first)" >&2; exit 1; }
+        venv="$RUNNER_TEMP/n8n-doctor-venv"
+        "$py" -m venv "$venv"
+        if [ -x "$venv/bin/python" ]; then n8nd_py="$venv/bin/python"; else n8nd_py="$venv/Scripts/python"; fi
+        # the action's own copy of n8n-doctor (the version of the tag or commit in uses:), never the latest from PyPI
+        "$n8nd_py" -m pip install --quiet --disable-pip-version-check --no-cache-dir "$ACTION_PATH"
+        "$n8nd_py" -c 'import os, re, sys, n8n_doctor
+        want = re.search(r"(?m)^version = \"([^\"]+)\"", open(os.path.join(os.environ["ACTION_PATH"], "pyproject.toml"), encoding="utf-8").read()).group(1)
+        n8n_doctor.__version__ == want or sys.exit("n8n-doctor: installed " + n8n_doctor.__version__ + ", but the action is " + want)'
+        echo "N8ND_PY=$n8nd_py" >> "$GITHUB_ENV"
+        # every boolean input is read the same way: spaces dropped, any case
+        flag() { printf '%s' "$1" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]'; }
+        case "$(flag "$INLINE")" in
+          false|no|off|0) echo "N8ND_FLAGS=--no-inline-suppress" >> "$GITHUB_ENV" ;;
+          *) echo "N8ND_FLAGS=" >> "$GITHUB_ENV" ;;
+        esac
+        case "$(flag "$ANNOTATIONS")" in true|yes|on|1) echo "N8ND_ANNOTATE=true" ;; *) echo "N8ND_ANNOTATE=false" ;; esac >> "$GITHUB_ENV"
+        case "$(flag "$UPLOAD")" in true|yes|on|1) echo "N8ND_UPLOAD=true" ;; *) echo "N8ND_UPLOAD=false" ;; esac >> "$GITHUB_ENV"
+        # the SARIF report goes to a folder that may not exist yet (n8n-doctor itself never creates folders)
+        if [ -n "$N8ND_SARIF" ]; then mkdir -p -- "$(dirname -- "$N8ND_SARIF")"; fi
+        # paths are split like a shell would (quotes respected, no variable expansion) and glob patterns expanded
+        # in Python (no shell, see n8n_doctor.workflow.expand_paths): a path that exists as written is kept as it
+        # is; matches include hidden files and folders, skip symlinks as a folder scan does (a symlink loop cannot
+        # hang the step), skip the folders a folder scan skips (.git, node_modules, ...), and stop with an error
+        # past 10,000 paths; a pattern ending in / matches folders only; a path given or matched twice (./a.json
+        # and a.json included) is checked once. One JSON line: no newline can end it.
+        "$n8nd_py" -c 'import json, os, shlex, sys; from n8n_doctor.workflow import GlobError, expand_paths
+        try:
+            paths = expand_paths(shlex.split(os.environ["N8ND_PATHS"]))
+        except GlobError as e:
+            sys.exit("n8n-doctor: " + str(e))
+        open(os.environ["GITHUB_ENV"], "a").write("N8ND_PATH_LIST=" + json.dumps(paths) + chr(10))'
+        # paths come from the path input, after `--`; a path in args would be checked as well, so it is refused;
+        # -h, --help and --version (or a prefix of them) would print text and skip the check, so they are refused too
+        "$n8nd_py" -c 'import os, shlex, sys; from n8n_doctor.cli import build_parser;
+        args = shlex.split(os.environ["N8ND_ARGS"]);
+        stop = "n8n-doctor: args holds -h, --help or --version, which would print help or the version instead of checking";
+        any(a == "-h" or (a.startswith("-h") and not a.startswith("--")) or (len(a) > 2 and ("--help".startswith(a) or "--version".startswith(a))) for a in args) and sys.exit(stop);
+        fixed = lambda a: a[1:].lstrip("v")[:1] in ("f", "o") if not a.startswith("--") and a.startswith("-") else len(a.split("=")[0]) > 2 and a.startswith("--") and ("--format".startswith(a.split("=")[0]) or "--output".startswith(a.split("=")[0]));
+        any(map(fixed, args)) and sys.exit("n8n-doctor: args holds --format or --output, which the action sets itself");
+        given = build_parser().parse_args(["lint", *args]).paths;
+        given and sys.exit("n8n-doctor: args holds a path (" + " ".join(given) + "); pass workflow paths with the path input")'
+
+    # Arguments are split like a shell would (quotes respected, no globbing or variable expansion); paths come from
+    # N8ND_PATH_LIST (see the install step).
+    # Forced options come after `args` so they always win. Exit code 2 (an input or usage error, such as a
+    # file in a folder that cannot be checked) does not stop the annotations and the SARIF upload: the
+    # last step runs the same check and fails the job.
+    - name: Annotate
+      if: env.N8ND_ANNOTATE == 'true'
+      shell: bash
+      env:
+        N8ND_ARGS: ${{ inputs.args }}
+        N8ND_CONFIG: ${{ inputs.config }}
+      run: >-
+        "$N8ND_PY" -c 'import json, os, shlex, subprocess, sys;
+        a = [sys.executable, "-m", "n8n_doctor", "lint", *shlex.split(os.environ["N8ND_ARGS"]), *shlex.split(os.environ.get("N8ND_FLAGS", "")), *(["--no-config"] if os.environ["N8ND_CONFIG"] == "none" else ["--config", os.environ["N8ND_CONFIG"]] if os.environ["N8ND_CONFIG"] else []), "--format", "github", "--fail-on", "never", "--", *json.loads(os.environ["N8ND_PATH_LIST"])];
+        code = subprocess.call(a);
+        sys.exit(0 if code == 2 else code)'
+
+    - name: SARIF report
+      id: sarif
+      if: inputs.sarif-file != ''
+      shell: bash
+      env:
+        N8ND_ARGS: ${{ inputs.args }}
+        N8ND_CONFIG: ${{ inputs.config }}
+        N8ND_SARIF: ${{ inputs.sarif-file }}
+      run: >-
+        "$N8ND_PY" -c 'import json, os, shlex, subprocess, sys, time;
+        a = [sys.executable, "-m", "n8n_doctor", "lint", *shlex.split(os.environ["N8ND_ARGS"]), *shlex.split(os.environ.get("N8ND_FLAGS", "")), *(["--no-config"] if os.environ["N8ND_CONFIG"] == "none" else ["--config", os.environ["N8ND_CONFIG"]] if os.environ["N8ND_CONFIG"] else []), "--format", "sarif", "--output", os.environ["N8ND_SARIF"], "--fail-on", "never", "--", *json.loads(os.environ["N8ND_PATH_LIST"])];
+        started = time.time() - 1;
+        code = subprocess.call(a);
+        written = code in (0, 2) and os.path.isfile(os.environ["N8ND_SARIF"]) and os.path.getmtime(os.environ["N8ND_SARIF"]) >= started;
+        written and open(os.environ["GITHUB_OUTPUT"], "a").write("path=" + os.environ["N8ND_SARIF"].replace(chr(10), "") + chr(10));
+        sys.exit(0 if written else (code or 1))'
+
+    - name: Check the SARIF settings
+      if: env.N8ND_UPLOAD == 'true' && inputs.sarif-file == ''
+      shell: bash
+      run: echo "::warning title=n8n-doctor::upload-sarif is on but sarif-file is empty, so nothing is uploaded"
+
+    - name: Upload SARIF
+      if: env.N8ND_UPLOAD == 'true' && steps.sarif.outputs.path != ''
+      uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+      with:
+        sarif_file: ${{ inputs.sarif-file }}
+        category: n8n-doctor
+
+    - name: n8n-doctor lint
+      shell: bash
+      env:
+        N8ND_ARGS: ${{ inputs.args }}
+        N8ND_CONFIG: ${{ inputs.config }}
+      run: >-
+        "$N8ND_PY" -c 'import json, os, shlex, sys;
+        a = [sys.executable, "-m", "n8n_doctor", "lint", "--color", "always", *shlex.split(os.environ["N8ND_ARGS"]), *shlex.split(os.environ.get("N8ND_FLAGS", "")), *(["--no-config"] if os.environ["N8ND_CONFIG"] == "none" else ["--config", os.environ["N8ND_CONFIG"]] if os.environ["N8ND_CONFIG"] else []), "--", *json.loads(os.environ["N8ND_PATH_LIST"])];
+        os.execv(sys.executable, a)'

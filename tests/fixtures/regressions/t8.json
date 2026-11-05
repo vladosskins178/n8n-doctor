@@ -1,0 +1,140 @@
+{
+  "name": "W",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "id0",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\"api_key\":\"Enter-The-Dragon-99\",\"password\":\"Blue-Sky-Rain-77\",\"email\":\"{{ $json.email }}\"}",
+        "options": {}
+      },
+      "id": "id1",
+      "name": "Build",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.org/x",
+        "options": {},
+        "method": "POST",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "{\"token\":\"Moon-River-2024\",\"q\":\"{{ $json.q }}\"}"
+      },
+      "id": "id2",
+      "name": "Raw",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.org/x",
+        "options": {},
+        "method": "POST",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "client_secret",
+              "value": "Winter-Is-Coming-1"
+            },
+            {
+              "name": "user",
+              "value": "{{ $json.u }}"
+            }
+          ]
+        }
+      },
+      "id": "id3",
+      "name": "Form",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.x.io/graphql?access_token=Purple-Monkey-Dishwasher&q={{ $json.q }}",
+        "options": {}
+      },
+      "id": "id4",
+      "name": "GQL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Build",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build": {
+      "main": [
+        [
+          {
+            "node": "Raw",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Raw": {
+      "main": [
+        [
+          {
+            "node": "Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form": {
+      "main": [
+        [
+          {
+            "node": "GQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

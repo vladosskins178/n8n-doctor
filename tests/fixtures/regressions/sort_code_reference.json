@@ -1,0 +1,46 @@
+{
+ "name": "sort",
+ "nodes": [
+  {
+   "id": "t",
+   "name": "Trigger",
+   "type": "n8n-nodes-base.manualTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {}
+  },
+  {
+   "id": "0",
+   "position": [
+    200,
+    0
+   ],
+   "name": "Sort",
+   "type": "n8n-nodes-base.sort",
+   "typeVersion": 1,
+   "parameters": {
+    "type": "code",
+    "code": "return $('Ghost').first().json.a - b.json.a"
+   }
+  }
+ ],
+ "connections": {
+  "Trigger": {
+   "main": [
+    [
+     {
+      "node": "Sort",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

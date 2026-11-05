@@ -1,0 +1,220 @@
+{
+  "name": "Lead intake",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "5f1c2d4e-0001-4a6b-9c1d-000000000001",
+      "name": "New lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "0e7a7a43-7d1e-4a7c-9a55-3c1d5e3f0a01"
+    },
+    {
+      "parameters": {
+        "url": "https://api.enrich.example.com/v2/person",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{ $json.body.email }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 9f8c2e71d04b4a3f8e6b5c1a7d2e9f30"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5f1c2d4e-0002-4a6b-9c1d-000000000002",
+      "name": "Enrich lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "company",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5f1c2d4e-0003-4a6b-9c1d-000000000003",
+      "name": "Is a company?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1AbCdEfGhIjKlMnOpQrStUvWxYz",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{ $('New lead').item.json.body.email }}",
+            "company": "={{ $('Enrich Lead').item.json.company.name }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "5f1c2d4e-0004-4a6b-9c1d-000000000004",
+      "name": "Add to CRM sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        660,
+        200
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://n8n.example.com/webhook-test/notify-sales",
+        "method": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{ $node[\"New lead\"].json.body.email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5f1c2d4e-0005-4a6b-9c1d-000000000005",
+      "name": "Notify sales",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        200
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "5f1c2d4e-0006-4a6b-9c1d-000000000006",
+      "name": "Old Slack alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        480
+      ]
+    }
+  ],
+  "connections": {
+    "New lead": {
+      "main": [
+        [
+          {
+            "node": "Enrich lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich lead": {
+      "main": [
+        [
+          {
+            "node": "Is a company?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is a company?": {
+      "main": [
+        [
+          {
+            "node": "Add to CRM sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Add to CRM sheet": {
+      "main": [
+        [
+          {
+            "node": "Notify sales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {
+    "New lead": [
+      {
+        "json": {
+          "body": {
+            "email": "jane.doe@example.com",
+            "phone": "+1 555 0100"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "n8n-doctor",
+  "owner": { "name": "Vladislav Y", "url": "https://github.com/vladosskins178" },
+  "plugins": [
+    {
+      "name": "n8n-doctor",
+      "source": "./",
+      "description": "Check n8n workflows for hardcoded secrets, open webhooks, broken references, loops that never finish and more."
+    }
+  ]
+}
